@@ -4,91 +4,76 @@ A 32-bit RISC-V processor implemented in Verilog/SystemVerilog with a five-stage
 
 > **Scope:** This implementation supports the instruction subset listed below. The reported simulation and coverage results apply to the implemented design and configured test scenarios; they do not establish exhaustive RV32I compliance or 100% RTL code coverage.
 
----
-
 ## Project Overview
 
-RISC-V is an open-standard Instruction Set Architecture (ISA) used in embedded systems and SoC design. This project implements a modular, pipelined 32-bit processor capable of executing the supported arithmetic, load/store, and control-flow instructions listed in this README.
+The processor is organized as a five-stage pipeline. Pipeline registers separate the stages, while forwarding and hazard-detection logic help manage data dependencies between instructions.
 
 ## Features
 
-- 32-bit RISC-V processor implementing a selected RV32I instruction subset
-- Five-stage pipeline: IF–ID–EX–MEM–WB
-- Modular RTL design
-- Register file, ALU, and ALU control
-- Immediate generator and control unit
-- Instruction and data memory
+- 32-bit RISC-V processor RTL
+- Five-stage pipelined architecture: IF, ID, EX, MEM, WB
+- Modular datapath and control logic
 - Data forwarding unit
-- Load-use hazard detection
+- Hazard detection unit
+- Instruction and data memory interfaces
 - SystemVerilog-based functional testbench
-- Functional coverage analysis
-- Simulation and waveform debugging using Cadence Xcelium and SimVision
-
----
+- Functional coverage collection and waveform debugging
 
 ## Repository Structure
 
-```text
-riscv-rv32i-rtl-verification
-│
-├── rtl/
-│   ├── core/
-│   ├── pipeline/
-│   └── hazard/
-│
-├── verification/
-│   ├── tests/
-│   ├── coverage/
-│   └── testbench files
-│
-├── test_programs/
-├── docs/
-├── scripts/
-└── README.md
-```
+The following is a high-level guide to the project organization; consult the repository for the exact current file names and directory contents.
 
-*The directory tree is a high-level guide; check the repository for the current file and folder names.*
-
----
+    riscv-rv32i-rtl-verification
+    ├── rtl/
+    │   ├── core/
+    │   ├── pipeline/
+    │   └── hazard/
+    ├── verification/
+    │   ├── tests/
+    │   ├── coverage/
+    │   └── testbench files
+    ├── test_programs/
+    ├── docs/
+    ├── scripts/
+    └── README.md
 
 ## Processor Architecture
-
-The processor uses the following five stages:
 
 | Stage | Function |
 |---|---|
 | IF — Instruction Fetch | Fetches the instruction using the program counter |
-| ID — Instruction Decode | Decodes the instruction, reads register operands, and generates immediate values |
-| EX — Execute | Performs ALU operations, comparisons, and address calculations |
+| ID — Instruction Decode | Decodes the instruction, reads registers, and generates immediates |
+| EX — Execute | Performs ALU operations, branch comparisons, and address calculations |
 | MEM — Memory Access | Performs data-memory reads and writes |
-| WB — Write Back | Writes the selected result back to the register file |
+| WB — Write Back | Writes the selected result to the register file |
 
-Key RTL blocks include the program counter, instruction memory, register file, immediate generator, control unit, ALU, data memory, pipeline registers, forwarding unit, and hazard detection unit.
+## Implemented Instruction Subset
 
----
+| Type | Instructions |
+|---|---|
+| R-type | ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT |
+| I-type | ADDI, ANDI, ORI, LW, JALR |
+| S-type | SW |
+| B-type | BEQ, BNE, BLT, BGE |
+| U-type | LUI, AUIPC |
+| J-type | JAL |
 
-## Supported Instruction Types
+This list describes the implemented subset, not a claim of complete RV32I ISA support.
 
-- **R-Type:** ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT
-- **I-Type:** ADDI, ANDI, ORI, LW, JALR
-- **S-Type:** SW
-- **B-Type:** BEQ, BNE, BLT, BGE
-- **U-Type:** LUI, AUIPC
-- **J-Type:** JAL
+## Verification
 
----
+The design is verified using SystemVerilog testbenches and Cadence Xcelium. SimVision is used for waveform inspection and debugging.
 
-## Verification Environment
+### Processor-level simulation results
 
-The processor was verified using SystemVerilog testbenches. Simulation and waveform debugging were performed using **Cadence Xcelium** and **SimVision**.
+| Metric | Result |
+|---|---:|
+| Test cases passed | 68 |
+| Test cases failed | 0 |
 
-### Simulation Results
+### Functional coverage
 
-- Processor-level directed tests: **68 passed, 0 failed**
-
-### Functional Coverage Results
-
-| Coverage metric | Result |
+| Coverage group | Coverage |
 |---|---:|
 | Instruction coverage | 79.69% |
 | ALU coverage | 100% |
@@ -97,32 +82,30 @@ The processor was verified using SystemVerilog testbenches. Simulation and wavef
 | Instruction type × ALU coverage | 77.14% |
 | Configured scenario bins | 15/15 (100%) |
 
-These figures represent functional coverage for the defined covergroups and bins. They are not RTL statement, branch, toggle, or overall code coverage.
+**Coverage note:** These figures represent the reported functional coverage groups and configured scenario bins. They are not RTL statement, branch, toggle, or overall code-coverage percentages.
 
----
+## FPGA Implementation and Timing
 
-## FPGA Implementation
+An implementation run was performed using AMD Xilinx Vivado 2023.2 for the PYNQ-Z2 / Zynq-7000 device (xc7z020clg400-1).
 
-An implementation run was performed using **AMD Xilinx Vivado 2023.2** targeting the **PYNQ-Z2 / Zynq-7000 (xc7z020clg400-1)** device.
-
-### Timing Results
+### Timing summary
 
 | Metric | Result |
 |---|---:|
 | Target clock period | 10 ns (100 MHz) |
-| WNS | +0.308 ns |
-| TNS | 0 ns |
-| WHS | +0.058 ns |
-| THS | 0 ns |
-| WPWS | +3.000 ns |
+| Worst Negative Slack (WNS) | +0.308 ns |
+| Total Negative Slack (TNS) | 0 ns |
+| Worst Hold Slack (WHS) | +0.058 ns |
+| Total Hold Slack (THS) | 0 ns |
+| Worst Pulse Width Slack (WPWS) | +3.000 ns |
 | Failing setup endpoints | 0 |
 | Failing hold endpoints | 0 |
 
-The reported implementation meets the specified 100 MHz timing constraint. This does not establish the maximum achievable operating frequency or confirm operation on a physical FPGA board.
+The reported timing results meet the specified 10 ns clock constraint for this implementation run. They do not represent the maximum achievable operating frequency or confirm operation on a physical FPGA board.
 
-### Resource Utilization
+### Resource utilization
 
-| Resource | Result |
+| Resource | Utilization |
 |---|---:|
 | LUTs | 610 (1.15%) |
 | Registers | 706 (0.66%) |
@@ -131,13 +114,18 @@ The reported implementation meets the specified 100 MHz timing constraint. This 
 | DSP | 0 |
 | Bonded I/O | 72/125 (57.60%) |
 
-### Power Estimate
+### Estimated power
 
-Vivado reported an estimated total power of **0.214 W**, comprising **0.108 W dynamic** and **0.106 W static** power, with an estimated junction temperature of **27.5 °C**. These are tool estimates, not measurements from a physical FPGA board.
+| Metric | Estimate |
+|---|---:|
+| Total power | 0.214 W |
+| Dynamic power | 0.108 W |
+| Static power | 0.106 W |
+| Junction temperature | 27.5 °C |
 
----
+Power and temperature values are tool estimates, not measurements from a physical board.
 
-## Tools Used
+## Tools and Technologies
 
 - Verilog
 - SystemVerilog
@@ -145,33 +133,20 @@ Vivado reported an estimated total power of **0.214 W**, comprising **0.108 W dy
 - Cadence SimVision
 - AMD Xilinx Vivado 2023.2
 
----
-
 ## Future Improvements
 
-- Increase instruction, branch, forwarding, and hazard scenario coverage
-- Add further assertions and constrained-random verification
-- Develop an independent reference model
-- Add program-level regression tests and cycle-count benchmarks
-- Extend the implemented RV32I instruction coverage
-- Perform physical FPGA board validation
-
----
+- Increase functional coverage, especially for branch and hazard scenarios.
+- Add more assertions and constrained-random tests.
+- Add an independent reference model for result checking.
+- Expand the implemented RV32I instruction subset.
+- Add program-level tests and cycle-count/performance benchmarks.
+- Validate the design on a physical FPGA board.
 
 ## Skills Demonstrated
 
-- Verilog and SystemVerilog
-- RTL design and processor microarchitecture
-- Pipelined processor design
-- Hazard detection and data forwarding
-- Functional verification and coverage analysis
-- Cadence Xcelium and SimVision
-- AMD Xilinx Vivado
-
----
+RTL design, pipelined processor microarchitecture, Verilog/SystemVerilog, datapath and control design, forwarding, hazard detection, functional verification, functional coverage, simulation, and waveform debugging.
 
 ## Author
 
-**Mohan Meesala**
-
+**Mohan Meesala**  
 M.Tech VLSI | RTL Design | Design Verification
