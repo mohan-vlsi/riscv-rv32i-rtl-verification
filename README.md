@@ -1,32 +1,28 @@
-# RISC-V (RV32I) Processor RTL Design and Verification
+# 32-Bit RV32I RISC-V Processor — RTL Design and Verification
 
-An industry-style implementation of a **32-bit RV32I RISC-V Processor** in Verilog/SystemVerilog featuring a **5-stage pipelined architecture**, hazard detection, forwarding, and a layered verification environment. The project demonstrates RTL design, processor microarchitecture, SystemVerilog Assertions (SVA), and functional verification using Synopsys VCS/Verdi.
+A 32-bit RISC-V processor implemented in Verilog/SystemVerilog with a five-stage pipeline (IF, ID, EX, MEM, WB), data forwarding, and hazard detection. This project focuses on front-end RTL design and functional verification.
+
+> **Scope:** This implementation supports the instruction subset listed below. The reported simulation and coverage results apply to the implemented design and configured test scenarios; they do not establish exhaustive RV32I compliance or 100% RTL code coverage.
 
 ---
 
 ## Project Overview
 
-RISC-V is an open-standard Instruction Set Architecture (ISA) widely adopted in modern embedded systems and SoC design. This project implements a **32-bit RV32I processor** with a modular pipelined architecture capable of executing arithmetic, load/store, and branch instructions.
-
-The processor is designed using synthesizable RTL and verified using a layered SystemVerilog verification environment.
-
----
+RISC-V is an open-standard Instruction Set Architecture (ISA) used in embedded systems and SoC design. This project implements a modular, pipelined 32-bit processor capable of executing the supported arithmetic, load/store, and control-flow instructions listed in this README.
 
 ## Features
 
-- 32-bit RV32I Processor
-- 5-Stage Pipeline (IF–ID–EX–MEM–WB)
-- Modular RTL Design
-- Hazard Detection Unit
-- Data Forwarding Unit
-- Register File
-- ALU & ALU Control
-- Immediate Generator
-- Instruction & Data Memory
-- Layered SystemVerilog Verification Environment
-- SystemVerilog Assertions (SVA)
-- Functional Coverage
-- Waveform Debugging using Synopsys VCS/Verdi
+- 32-bit RISC-V processor implementing a selected RV32I instruction subset
+- Five-stage pipeline: IF–ID–EX–MEM–WB
+- Modular RTL design
+- Register file, ALU, and ALU control
+- Immediate generator and control unit
+- Instruction and data memory
+- Data forwarding unit
+- Load-use hazard detection
+- SystemVerilog-based functional testbench
+- Functional coverage analysis
+- Simulation and waveform debugging using Cadence Xcelium and SimVision
 
 ---
 
@@ -37,235 +33,140 @@ riscv-rv32i-rtl-verification
 │
 ├── rtl/
 │   ├── core/
-│   │   ├── cpu_pkg.sv
-│   │   ├── pc.sv
-│   │   ├── instruction_memory.sv
-│   │   ├── register_file.sv
-│   │   ├── immediate_generator.sv
-│   │   ├── control_unit.sv
-│   │   ├── alu_control.sv
-│   │   ├── alu.sv
-│   │   ├── data_memory.sv
-│   │   └── riscv_top.sv
-│   │
 │   ├── pipeline/
-│   │   ├── if_id.sv
-│   │   ├── id_ex.sv
-│   │   ├── ex_mem.sv
-│   │   └── mem_wb.sv
-│   │
 │   └── hazard/
-│       ├── forwarding_unit.sv
-│       └── hazard_detection_unit.sv
 │
 ├── verification/
-│   ├── interface/
-│   ├── transaction/
-│   ├── generator/
-│   ├── driver/
-│   ├── monitor/
-│   ├── scoreboard/
-│   ├── environment/
-│   ├── assertions/
-│   ├── coverage/
 │   ├── tests/
-│   └── top_tb.sv
+│   ├── coverage/
+│   └── testbench files
 │
 ├── test_programs/
-│
 ├── docs/
-│
 ├── scripts/
-│
 └── README.md
 ```
+
+*The directory tree is a high-level guide; check the repository for the current file and folder names.*
 
 ---
 
 ## Processor Architecture
 
-The processor consists of the following RTL modules:
+The processor uses the following five stages:
 
-| Module | Description |
-|---------|-------------|
-| pc.sv | Program Counter |
-| instruction_memory.sv | Instruction Memory |
-| register_file.sv | 32 × 32-bit Register File |
-| immediate_generator.sv | Immediate Value Generator |
-| control_unit.sv | Main Control Unit |
-| alu_control.sv | ALU Control Decoder |
-| alu.sv | Arithmetic Logic Unit |
-| data_memory.sv | Data Memory |
-| if_id.sv | IF/ID Pipeline Register |
-| id_ex.sv | ID/EX Pipeline Register |
-| ex_mem.sv | EX/MEM Pipeline Register |
-| mem_wb.sv | MEM/WB Pipeline Register |
-| forwarding_unit.sv | Data Forwarding Logic |
-| hazard_detection_unit.sv | Load-Use Hazard Detection |
-| riscv_top.sv | Top-Level Processor |
+| Stage | Function |
+|---|---|
+| IF — Instruction Fetch | Fetches the instruction using the program counter |
+| ID — Instruction Decode | Decodes the instruction, reads register operands, and generates immediate values |
+| EX — Execute | Performs ALU operations, comparisons, and address calculations |
+| MEM — Memory Access | Performs data-memory reads and writes |
+| WB — Write Back | Writes the selected result back to the register file |
 
----
-
-## Pipeline Architecture
-
-The processor implements a classic **5-stage pipeline**:
-
-```text
-Instruction Fetch (IF)
-          │
-          ▼
-Instruction Decode (ID)
-          │
-          ▼
-Execute (EX)
-          │
-          ▼
-Memory Access (MEM)
-          │
-          ▼
-Write Back (WB)
-```
+Key RTL blocks include the program counter, instruction memory, register file, immediate generator, control unit, ALU, data memory, pipeline registers, forwarding unit, and hazard detection unit.
 
 ---
 
 ## Supported Instruction Types
 
-- R-Type
-  - ADD
-  - SUB
-  - AND
-  - OR
-  - XOR
-  - SLL
-  - SRL
-  - SRA
-  - SLT
-
-- I-Type
-  - ADDI
-  - ANDI
-  - ORI
-  - LW
-  - JALR
-
-- S-Type
-  - SW
-
-- B-Type
-  - BEQ
-  - BNE
-  - BLT
-  - BGE
-
-- U-Type
-  - LUI
-  - AUIPC
-
-- J-Type
-  - JAL
+- **R-Type:** ADD, SUB, AND, OR, XOR, SLL, SRL, SRA, SLT
+- **I-Type:** ADDI, ANDI, ORI, LW, JALR
+- **S-Type:** SW
+- **B-Type:** BEQ, BNE, BLT, BGE
+- **U-Type:** LUI, AUIPC
+- **J-Type:** JAL
 
 ---
 
 ## Verification Environment
 
-The processor is verified using a layered SystemVerilog verification environment.
+The processor was verified using SystemVerilog testbenches. Simulation and waveform debugging were performed using **Cadence Xcelium** and **SimVision**.
 
-```text
-Generator
-    │
-Mailbox
-    │
-Driver
-    │
-CPU DUT
-    │
-Monitor
-    │
-Mailbox
-    │
-Scoreboard
-```
+### Simulation Results
 
-Verification Components
+- Processor-level directed tests: **68 passed, 0 failed**
 
-- Interface
-- Transaction
-- Generator
-- Driver
-- Monitor
-- Scoreboard
-- Environment
-- Testbench
+### Functional Coverage Results
+
+| Coverage metric | Result |
+|---|---:|
+| Instruction coverage | 79.69% |
+| ALU coverage | 100% |
+| Branch coverage | 55.56% |
+| Hazard coverage | 77.50% |
+| Instruction type × ALU coverage | 77.14% |
+| Configured scenario bins | 15/15 (100%) |
+
+These figures represent functional coverage for the defined covergroups and bins. They are not RTL statement, branch, toggle, or overall code coverage.
 
 ---
 
-## Assertions
+## FPGA Implementation
 
-Implemented SystemVerilog Assertions for:
+An implementation run was performed using **AMD Xilinx Vivado 2023.2** targeting the **PYNQ-Z2 / Zynq-7000 (xc7z020clg400-1)** device.
 
-- Program Counter Alignment
-- Register x0 Constant Zero
-- Hazard Detection Logic
-- Pipeline Stall Behavior
-- Forwarding Logic
-- Memory Read/Write Control
+### Timing Results
+
+| Metric | Result |
+|---|---:|
+| Target clock period | 10 ns (100 MHz) |
+| WNS | +0.308 ns |
+| TNS | 0 ns |
+| WHS | +0.058 ns |
+| THS | 0 ns |
+| WPWS | +3.000 ns |
+| Failing setup endpoints | 0 |
+| Failing hold endpoints | 0 |
+
+The reported implementation meets the specified 100 MHz timing constraint. This does not establish the maximum achievable operating frequency or confirm operation on a physical FPGA board.
+
+### Resource Utilization
+
+| Resource | Result |
+|---|---:|
+| LUTs | 610 (1.15%) |
+| Registers | 706 (0.66%) |
+| Slices | 273 (2.05%) |
+| BRAM | 0 |
+| DSP | 0 |
+| Bonded I/O | 72/125 (57.60%) |
+
+### Power Estimate
+
+Vivado reported an estimated total power of **0.214 W**, comprising **0.108 W dynamic** and **0.106 W static** power, with an estimated junction temperature of **27.5 °C**. These are tool estimates, not measurements from a physical FPGA board.
 
 ---
 
-## Functional Coverage
+## Tools Used
 
-Coverage includes:
-
-- Instruction Types
-- ALU Operations
-- Register Write Operations
-- Load/Store Instructions
-- Branch Instructions
-- Hazard Scenarios
-- Forwarding Conditions
-
----
-
-## Simulation
-
-Simulation flow:
-
-1. Compile RTL
-2. Compile Verification Environment
-3. Run Simulation
-4. Debug using Synopsys VCS/Verdi
-5. Analyze Assertions
-6. Check Functional Coverage
+- Verilog
+- SystemVerilog
+- Cadence Xcelium
+- Cadence SimVision
+- AMD Xilinx Vivado 2023.2
 
 ---
 
 ## Future Improvements
 
-- Branch Prediction Unit
-- Instruction Cache
-- Data Cache
-- CSR Instruction Support
-- RV32M Extension
-- UVM-based Verification Environment
-- Coverage-Driven Verification
-- CI/CD Integration using GitHub Actions
+- Increase instruction, branch, forwarding, and hazard scenario coverage
+- Add further assertions and constrained-random verification
+- Develop an independent reference model
+- Add program-level regression tests and cycle-count benchmarks
+- Extend the implemented RV32I instruction coverage
+- Perform physical FPGA board validation
 
 ---
 
 ## Skills Demonstrated
 
-- Verilog
-- SystemVerilog
-- RTL Design
-- Processor Microarchitecture
-- RISC-V (RV32I)
-- Pipelined Processor Design
-- Hazard Detection
-- Data Forwarding
-- SystemVerilog Assertions (SVA)
-- Functional Coverage
-- Design Verification
-- Synopsys VCS/Verdi
+- Verilog and SystemVerilog
+- RTL design and processor microarchitecture
+- Pipelined processor design
+- Hazard detection and data forwarding
+- Functional verification and coverage analysis
+- Cadence Xcelium and SimVision
+- AMD Xilinx Vivado
 
 ---
 
@@ -273,4 +174,4 @@ Simulation flow:
 
 **Mohan Meesala**
 
-Electrical Engineering | VLSI | RTL Design | Design Verification
+M.Tech VLSI | RTL Design | Design Verification
