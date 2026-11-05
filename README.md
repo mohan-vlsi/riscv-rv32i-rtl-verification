@@ -23,19 +23,32 @@ The processor is organized as a five-stage pipeline. Pipeline registers separate
 
 The following is a high-level guide to the project organization; consult the repository for the exact current file names and directory contents.
 
-    riscv-rv32i-rtl-verification
-    ├── rtl/
-    │   ├── core/
-    │   ├── pipeline/
-    │   └── hazard/
-    ├── verification/
-    │   ├── tests/
-    │   ├── coverage/
-    │   └── testbench files
-    ├── test_programs/
-    ├── docs/
-    ├── scripts/
-    └── README.md
+    riscv-rv32i-rtl-verification/
+├── README.md
+├── rtl/
+│   ├── alu.v
+│   ├── alu_control.v
+│   ├── control_unit.v
+│   ├── data_memory.v
+│   ├── ex_mem_reg.v
+│   ├── forwarding_unit.v
+│   ├── hazard_detection.v
+│   ├── id_ex_reg.v
+│   ├── if_id_reg.v
+│   ├── immediate_generator.v
+│   ├── instruction_memory.v
+│   ├── mem_wb_reg.v
+│   ├── program_counter.v
+│   ├── register_file.v
+│   └── riscv_core.v
+├── tb/
+│   ├── individual module testbenches
+│   ├── tb_riscv_core.v
+│   ├── tb_riscv_functional.v
+│   └── tb_riscv_coverage.sv
+├── scripts/
+│   └── run_simulation.sh
+└── .gitignore
 
 ## Processor Architecture
 
